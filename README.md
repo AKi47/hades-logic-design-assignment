@@ -5,6 +5,7 @@ Directory structure:
 
 - hades-logic-design-assignment-master
   - hades.py
+  - config.json
   - stuffs
       - library.v
       - scaffolds
@@ -26,6 +27,15 @@ File containing module must be module must be named ##m.v where ## is the questi
 File containing module must be simulation must be named ##s.v where ## is the question number in 2 digit representation. eg: 01s.v, 24s.v
 
 Put the definitions for different modules under the file library.v in folder stuff.
+
+Your config.json will looks like this:
+```json
+{
+      "firstname":"YourName",
+      "rollno":"RegistrationNumber",
+      "assgno":"10"
+}
+```
 
 Your library file looks like this:
 ```verilog
