@@ -31,10 +31,7 @@ def main():
                     print("\n\nPlease edit the config file and correct the errors...\n\nCall me when you're done correcting the errors...\n\nBye!\n")
                 exit()
         else:
-            firstname = input('Your Firstname : ').upper()
-            rollno = input('Your Rollno : ').upper()
-            assgno = input('Current Assignment no. : ')
-            correctdetails = input('\nAre these details correct? ').lower()
+            firstname,rollno,assgno,correctdetails = inputdetails()
             if (correctdetails == 'yes' or correctdetails == 'y'):
                 break
             elif typocount<1:
@@ -67,11 +64,7 @@ def main():
         for raw in scaffolds:
             filenameparts = re.findall(r'(\d+?)([a-z])(\.v)', raw)[0]
             with open(os.path.join(scaffoldfolder,raw), 'r') as mould:
-                scaffold = mould.read().strip()
-                scaffold = scaffold + '\n'
-                scaffold = re.sub(r'//.*(\n|$)?', '\n', scaffold)
-                scaffold = re.sub(r'\n[^\S\r\n]+?\n', '\n', scaffold)
-                slots = re.findall(catchphrase, scaffold)
+                scaffold = setscaffold(scaffold,mould,catchphrase)
                 deferror = 0
                 for slot in slots:
                     checkpatch = re.search(slot+r'\n([\s\S]+?)(?:\n@|$)',bundle)
@@ -123,23 +116,7 @@ def main():
                         transcriptfile = os.path.join(buildfolder,'transcript')
                         with open(transcriptfile, 'r') as transcriptmod:
                             transcripttext = transcriptmod.read()
-                            transcripttext = re.sub(r'#\s+Loading project([\s\S]+?)\n','', transcripttext)
-                            transcripttext = re.sub(r'#\s+project new([\s\S]+?)\n','', transcripttext)
-                            transcripttext = re.sub(r'#\s+project open([\s\S]+?)\n','', transcripttext)
-                            transcripttext = re.sub(r'#\s+project add([\s\S]+?)\n','', transcripttext)
-                            transcripttext = re.sub(r'#\s+project compileall([\s\S]+?)#\s+simulate\n',' '.join(['# Compile of',filestart+filenameparts[0]+filenameparts[2],'was successful.\n'])+' '.join(['# Compile of',filestart+filenameparts[0]+'_TB'+filenameparts[2],'was successful.\n']), transcripttext)
-                            transcripttext = re.sub(r'#\s+add','add', transcripttext)
-                            transcripttext = re.sub(r'#\s+\*\*\s+Warning:(.)*\n','', transcripttext)
-                            transcripttext = re.subn(r'#\s+vsim','vsim', transcripttext,1)[0]
-                            starttime = datetime.datetime.strptime(re.search(r'Start time: (\d+\:\d+\:\d+)', transcripttext).group(1), '%H:%M:%S')
-                            deltatime = random.randint(60,120)
-                            endtime = starttime + datetime.timedelta(seconds=deltatime)
-                            elapsedtime = datetime.datetime.strptime('0:00:00', '%H:%M:%S') + datetime.timedelta(seconds=deltatime)
-                            transcripttext = re.sub(r'End time: (\d+\:\d+\:\d+)', 'End time: '+endtime.strftime('%H:%M:%S'), transcripttext)
-                            transcripttext = re.sub(r'(?:Elapsed time\: 0\:00\:)(\d+)', 'Elapsed time: '+ elapsedtime.strftime('%H:%M:%S'), transcripttext)
-                            transcripttext = re.sub(r'#\s+run','run', transcripttext)
-                            transcripttext = re.sub(r'#\s+quit \-sim','quit -sim', transcripttext)
-                            transcripttext = re.sub(r'\n#\s+quit\n','', transcripttext)
+                            transcripttext = settranscripttext(transcripttext,filestart,filenameparts)
                             monitorcapture = re.search(r'run\n([\s\S]*)\nquit \-sim',transcripttext)
                             if monitorcapture:
                                 monitorsting = monitorcapture.group(1)
@@ -156,7 +133,40 @@ def main():
                         copyfile(transcriptfile, newtranscriptfile)
     print("\nCHEERS! Your assignment has been completed successfully! :)\n\nPlease do check the output carefully to see if you've made any mistakes in the code!\n\nPeace Out!\n")
     cleanfolder(furnacefolder)
-    
+
+def inputdetails():
+    firstname = input('Your Firstname : ').upper()
+    rollno = input('Your Rollno : ').upper()
+    assgno = input('Current Assignment no. : ')
+    correctdetails = input('\nAre these details correct? ').lower()
+    return firstname,rollno,assgno,correctdetails
+
+def settranscripttext(transcripttext,filestart,filenameparts):
+    transcripttext = re.sub(r'#\s+Loading project([\s\S]+?)\n','', transcripttext)
+    transcripttext = re.sub(r'#\s+project new([\s\S]+?)\n','', transcripttext)
+    transcripttext = re.sub(r'#\s+project open([\s\S]+?)\n','', transcripttext)
+    transcripttext = re.sub(r'#\s+project add([\s\S]+?)\n','', transcripttext)
+    transcripttext = re.sub(r'#\s+project compileall([\s\S]+?)#\s+simulate\n',' '.join(['# Compile of',filestart+filenameparts[0]+filenameparts[2],'was successful.\n'])+' '.join(['# Compile of',filestart+filenameparts[0]+'_TB'+filenameparts[2],'was successful.\n']), transcripttext)
+    transcripttext = re.sub(r'#\s+add','add', transcripttext)
+    transcripttext = re.sub(r'#\s+\*\*\s+Warning:(.)*\n','', transcripttext)
+    transcripttext = re.subn(r'#\s+vsim','vsim', transcripttext,1)[0]
+    starttime = datetime.datetime.strptime(re.search(r'Start time: (\d+\:\d+\:\d+)', transcripttext).group(1), '%H:%M:%S')
+    deltatime = random.randint(60,120)
+    endtime = starttime + datetime.timedelta(seconds=deltatime)
+    elapsedtime = datetime.datetime.strptime('0:00:00', '%H:%M:%S') + datetime.timedelta(seconds=deltatime)
+    transcripttext = re.sub(r'End time: (\d+\:\d+\:\d+)', 'End time: '+endtime.strftime('%H:%M:%S'), transcripttext)
+    transcripttext = re.sub(r'(?:Elapsed time\: 0\:00\:)(\d+)', 'Elapsed time: '+ elapsedtime.strftime('%H:%M:%S'), transcripttext)
+    transcripttext = re.sub(r'#\s+run','run', transcripttext)
+    transcripttext = re.sub(r'#\s+quit \-sim','quit -sim', transcripttext)
+    transcripttext = re.sub(r'\n#\s+quit\n','', transcripttext)
+
+def setscaffold(scaffold,mould,catchphrase):
+    scaffold = mould.read().strip()
+    scaffold = scaffold + '\n'
+    scaffold = re.sub(r'//.*(\n|$)?', '\n', scaffold)
+    scaffold = re.sub(r'\n[^\S\r\n]+?\n', '\n', scaffold)
+    slots = re.findall(catchphrase, scaffold)
+    return scaffold
 
 def makefolder(directory):
     try:
